@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback } from "react";
 
 import Places from "./components/Places.jsx";
 import Modal from "./components/Modal.jsx";
@@ -7,44 +7,20 @@ import logoImg from "./assets/logo.png";
 import AvailablePlaces from "./components/AvailablePlaces.jsx";
 import { fetchUserPlaces, updateUserPlaces } from "../http.js";
 import ErrorPage from "./components/ErrorPage";
-import { sortPlacesByDistance } from "./loc.js";
+import { useFetch } from "./hooks/useFetch.jsx";
 
 function App() {
   const selectedPlace = useRef();
 
-  const [userPlaces, setUserPlaces] = useState([]);
   const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState();
-  const [errorUserPlaces, setErrorUserPlaces] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchPlaces = async () => {
-      setIsLoading(true);
-      try {
-        const places = await fetchUserPlaces();
-
-        navigator.geolocation.getCurrentPosition((position) => {
-          const sortedPlaces = sortPlacesByDistance(
-            [...places],
-            position.coords.latitude,
-            position.coords.altitude
-          );
-
-          setUserPlaces(() => [...sortedPlaces]);
-        });
-      } catch (error) {
-        setErrorUserPlaces({
-          message:
-            error.message || "Could not fetch places, please try again later!",
-        });
-      }
-      setIsLoading(false);
-    };
-
-    fetchPlaces();
-  }, []);
+  const {
+    fetchedData: userPlaces,
+    setFetchedData: setUserPlaces,
+    error: errorUserPlaces,
+    isLoading,
+  } = useFetch(fetchUserPlaces, []);
 
   function handleStartRemovePlace(place) {
     setModalIsOpen(true);
